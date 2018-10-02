@@ -26,7 +26,7 @@ this is {{ hoge }}.
 
 ### プログラムを実行
 
-```python
+```sh
 $ python nksm_parser.py template.txt variables.json
 ```
 
