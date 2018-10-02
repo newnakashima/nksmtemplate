@@ -1,4 +1,4 @@
-# nksm_parser
+# nksmtemplate
 
 ## 概要
 
