@@ -5,13 +5,14 @@ import os
 sys.path.append(os.getcwd())
 import nksm_parser
 from io import StringIO
+import textwrap
 
 class ParserTest(unittest.TestCase):
 
     def test_read_template(self):
         p = nksm_parser.Parser()
         p.read_template('./test/test.txt')
-        self.assertEqual('this is test\n', p.text)
+        self.assertEqual('this is test\n', p.template)
 
     def test_read_json(self):
         p = nksm_parser.Parser()
@@ -47,7 +48,7 @@ fuga
         self.assertEqual(expected, p.parse_variable())
 
     def test_render(self):
-        self.maxDiff = 1000
+        self.maxDiff = 2000
         tmp_buffer = StringIO()
         sys.stdout = tmp_buffer
         p = nksm_parser.Parser()
@@ -62,6 +63,33 @@ fuga
         p.render()
         sys.stdout = sys.__stdout__
         self.assertEqual(expected, tmp_buffer.getvalue())
+
+    def test_parse_if(self):
+        p = nksm_parser.Parser()
+        hoge = {
+                'hoge': True
+                }
+        p.variables = hoge
+        p.read_template('./test/if_test.txt')
+        expected = textwrap.dedent('''
+            これはテストです。
+            hogeのときだけここが出力されます。
+            ここは共通で出力されます。
+            hogeはTrueでした。
+            ''').strip() + "\n"
+        p.parse_if()
+        self.assertEqual(expected, p.parse_variable())
+        hoge = {
+                'hoge': False
+                }
+        p.variables = hoge
+        expected = textwrap.dedent('''
+            これはテストです。
+            ここは共通で出力されます。
+            hogeはFalseでした。
+            ''').strip() + "\n"
+        p.parse_if()
+        self.assertEqual(expected, p.parse_variable())
 
 if __name__ == '__main__':
     unittest.main()
