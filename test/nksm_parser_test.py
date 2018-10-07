@@ -2,6 +2,7 @@ import re
 import unittest
 import sys
 import os
+sys.path.append(os.getcwd())
 import nksm_parser
 
 class ParserTest(unittest.TestCase):
