@@ -1,6 +1,7 @@
 import re
 import sys
 import json
+import io
 class Parser:
 
     text = ''
@@ -27,10 +28,14 @@ class Parser:
             result_str = variable.sub(dic[key], result_str)
         return result_str
 
+    def render(self):
+        text = self.parse_variable()
+        print(text, end='')
+
     def run(self):
         self.read_template(sys.argv[1])
         self.read_json(sys.argv[2])
-        print(self.parse_variable(), end='')
+        self.render()
 
 if __name__ == '__main__':
     parser = Parser()
