@@ -20,7 +20,7 @@ class Parser:
         result_str = self.text
         dic = self.variables
         for key in dic:
-            variable = re.compile('{{\s+' + key + '\s+}}')
+            variable = re.compile('{{\s*' + key + '\s*}}')
             result_str = variable.sub(dic[key], result_str)
         return result_str
 
