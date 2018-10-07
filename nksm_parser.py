@@ -12,9 +12,12 @@ class Parser:
             data += f.read()
         self.text = data
 
-    def read_variable(self, path):
+    def read_json(self, path):
         with open(path, 'r') as f:
             self.variables = json.load(f)
+
+    def set_variables(self, variables):
+        self.variables = variables;
 
     def parse_variable(self):
         result_str = self.text
@@ -26,7 +29,7 @@ class Parser:
 
     def run(self):
         self.read_template(sys.argv[1])
-        self.read_variable(sys.argv[2])
+        self.read_json(sys.argv[2])
         print(self.parse_variable(), end='')
 
 if __name__ == '__main__':

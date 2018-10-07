@@ -11,14 +11,23 @@ class ParserTest(unittest.TestCase):
         p.read_template('./test/test.txt')
         self.assertEqual('this is test\n', p.text)
 
-    def test_read_variable(self):
+    def test_read_json(self):
         p = nksm_parser.Parser()
-        p.read_variable('./test/var_test.json')
+        p.read_json('./test/var_test.json')
         expected = {
-            'hoge': 'fuga',
-            'piyo': 'piyopiyo'
-        }
+                'hoge': 'fuga',
+                'piyo': 'piyopiyo'
+                }
         self.assertEqual(expected, p.variables)
+
+    def test_set_variables(self):
+        p = nksm_parser.Parser()
+        variables = {
+                'hoge': 'fuga',
+                'piyo': 'piyopiyo'
+                }
+        p.set_variables(variables)
+        self.assertEqual(variables, p.variables)
 
     def test_parse_variable(self):
         p = nksm_parser.Parser()
