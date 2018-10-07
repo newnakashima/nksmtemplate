@@ -35,3 +35,24 @@ $ python nksm_parser.py template.txt variables.json
 this is テストです.
 ```
 
+### if文
+
+if.txt 
+```
+line 1.
+{{if hoge}}
+line 2.
+{{fi}}
+line 3.
+```
+if.json
+```json
+{
+  "hoge": false
+}
+```
+結果
+```
+line 1.
+line 3.
+```
