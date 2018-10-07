@@ -48,7 +48,7 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            python tests/nksm_parser_test.py
+            python test/nksm_parser_test.py
 
       - store_artifacts:
           path: test-reports
