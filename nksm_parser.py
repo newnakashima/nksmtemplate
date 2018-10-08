@@ -62,9 +62,6 @@ class Parser:
                     continue
                 inside_if = True
                 # if文の行の場合は出力行に含めない
-                # if if_matched.group(2) == 'cond2':
-                #     print(if_matched.group(2))
-                #     print(self.variables[if_matched.group(2)])
                 if type(self.variables[if_matched.group(2)]) is not bool:
                     raise NotBooleanError
                 if not self.variables[if_matched.group(2)]:
