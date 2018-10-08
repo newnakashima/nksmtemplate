@@ -1,5 +1,6 @@
 __pycache__
 templates
 !templates/template.nt
+!test/templates
 variables
 !variables/variable.json
