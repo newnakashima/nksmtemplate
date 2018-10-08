@@ -6,5 +6,5 @@ v = {
         }
 p.set_variables(v)
 p.read_template('templates/template.nt')
-print(p.parse_variable(), end='')
+p.render()
 

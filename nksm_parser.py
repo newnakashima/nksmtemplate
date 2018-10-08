@@ -1,5 +1,8 @@
 import re
 import sys
+import os
+sys.path.append(os.getcwd() + '/error')
+from nksm_errors import IfClauseError, NotBooleanError
 import json
 class Parser:
 
@@ -36,7 +39,7 @@ class Parser:
         raw_flg = False
         result_lines = []
         nested_lines = []
-        nested_count = 0
+        if_count = 0
         ind_reg = re.compile('^(\s*)\S')
         if_reg = re.compile('^\s*{{\s*(r)?if\s*(\w+)\s*}}$')
         fi_reg = re.compile('^\s*{{\s*fi\s*}}$')
@@ -44,6 +47,7 @@ class Parser:
             if_matched = if_reg.match(line)
             fi_matched = fi_reg.match(line)
             if if_matched != None:
+                if_count += 1
                 ind_matched = ind_reg.match(line)
                 if (ind_matched != None and not inside_if):
                     # トップレベルのif文行の場合
@@ -51,7 +55,6 @@ class Parser:
                     raw_flg = if_matched.group(1) != None
                 if inside_if:
                     # ifブロック内にif文がある => ネスト
-                    nested_count += 1
                     if not raw_flg:
                         # ネスト内のインデントは最初のif文行にそろえる
                         line = re.sub('^\s*', indent, line)
@@ -59,15 +62,22 @@ class Parser:
                     continue
                 inside_if = True
                 # if文の行の場合は出力行に含めない
+                # if if_matched.group(2) == 'cond2':
+                #     print(if_matched.group(2))
+                #     print(self.variables[if_matched.group(2)])
+                if type(self.variables[if_matched.group(2)]) is not bool:
+                    raise NotBooleanError
                 if not self.variables[if_matched.group(2)]:
                     # ifの条件がFalseのときは無視フラグを立てる
                     ignore_flg = True
                 continue
             if fi_matched != None:
-                if nested_count > 0:
-                    nested_count -= 1
-                    if nested_count == 0:
-                        nested_lines.append(line)
+                if_count -= 1
+                if if_count > 0:
+                    # if_countがまだ1以上 => ネスト
+                    nested_lines.append(line)
+                    if if_count == 1:
+                        # if_countが1 => ネスト終了
                         result_lines.extend(self.__parse_if(nested_lines))
                     continue
                 inside_if = False
@@ -77,15 +87,18 @@ class Parser:
             if ignore_flg:
                 # if文の中かつ条件に一致しない場合は出力しない
                 continue
-            if nested_count > 0:
+            if if_count > 1:
                 # ネスト内の普通の行
                 nested_lines.append(line)
                 continue
-            if inside_if and not raw_flg and nested_count == 0:
+            if inside_if and not raw_flg and if_count == 1:
                 # if文行のインデントを引き継ぐ
                 line = re.sub('^\s*', indent, line)
             # それ以外の場合は普通に出力
             result_lines.append(line)
+        if if_count != 0:
+            # パース終了時にif_countが0じゃない => ifが全部閉じられてない
+            raise IfClauseError('if clauses is not closed properly.')
         return result_lines
 
     def parse_variable(self):
