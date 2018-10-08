@@ -1,3 +1,5 @@
 {
-    "hoge": true
+    "hoge": true,
+    "nest1": true,
+    "nest2": true
 }

@@ -1,9 +1,9 @@
 これはテストです。
-{{if hoge}}
+{{rif hoge}}
     hogeのときだけここが出力されます。
-    {{if nest1}}
+    {{rif nest1}}
         nest1のときだけここが出力されます。
-        {{if nest2}}
+        {{rif nest2}}
             nest2のときだけここが出力されます。
         {{fi}}
     {{fi}}
