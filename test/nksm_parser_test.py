@@ -103,5 +103,44 @@ fuga
         p.parse_if()
         self.assertEqual(expected, p.parse_variable())
 
+    def test_parse_rif(self):
+        p = nksm_parser.Parser()
+        hoge = {
+                'hoge': True,
+                'nest1': True,
+                'nest2': False,
+                }
+        p.variables = hoge
+        p.read_template('./test/rif_test.txt')
+        expected = textwrap.dedent('''
+            これはテストです。
+                hogeのときだけここが出力されます。
+                    nest1のときだけここが出力されます。
+            ここは共通で出力されます。
+            hogeはTrueでした。
+            nest1はTrueでした。
+            nest2はFalseでした。
+            ''').strip() + "\n"
+        p.parse_if()
+        self.assertEqual(expected, p.parse_variable())
+        hoge = {
+                'hoge': True,
+                'nest1': True,
+                'nest2': True,
+                }
+        p.variables = hoge
+        expected = textwrap.dedent('''
+            これはテストです。
+                hogeのときだけここが出力されます。
+                    nest1のときだけここが出力されます。
+                        nest2のときだけここが出力されます。
+            ここは共通で出力されます。
+            hogeはTrueでした。
+            nest1はTrueでした。
+            nest2はTrueでした。
+            ''').strip() + "\n"
+        p.parse_if()
+        self.assertEqual(expected, p.parse_variable())
+
 if __name__ == '__main__':
     unittest.main()
