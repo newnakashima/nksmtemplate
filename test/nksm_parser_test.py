@@ -24,6 +24,27 @@ class ParserTest(unittest.TestCase):
                 }
         self.assertEqual(expected, p.variables)
 
+    def test_iterate_token(self):
+        p = nksm_parser.Parser()
+        p.read_template('./test/templates/test2.txt')
+        p.tokenize()
+        p.set_variables({
+            'hoge': 'ほんわか',
+            })
+        expected = textwrap.dedent('''
+        this is test2.
+        ほんわか
+        ''').strip() + '\n'
+        self.assertEqual(expected, p.iterate_token())
+        p.read_template('./test/templates/test_iterate_token.txt')
+        p.tokenize()
+        p.set_variables({ 'test': True })
+        expected = textwrap.dedent('''
+        ふふふふ
+        ほんわか
+        ''').strip()
+        actual = p.iterate_token()
+
     def test_set_variables(self):
         p = nksm_parser.Parser()
         variables = {
@@ -35,18 +56,12 @@ class ParserTest(unittest.TestCase):
 
     def test_parse_variable(self):
         p = nksm_parser.Parser()
-        p.variables = {
-                'test': 'fuga',
-                }
-        p.text = '''this
-is
-{{ test }}
-'''
-        expected = '''this
-is
-fuga
-'''
-        self.assertEqual(expected, p.parse_variable())
+        p.set_variables({
+                'hoge': 'unko',
+            })
+        token = ' hoge '
+        expected = 'unko'
+        self.assertEqual(expected, p.parse_variable(token))
 
     def test_render(self):
         self.maxDiff = 2000
@@ -58,6 +73,7 @@ fuga
                 }
         p.variables = hoge
         p.read_template('./test/templates/test2.txt')
+        p.tokenize()
         expected = '''this is test2.
 {hoge}
 '''.format(hoge=hoge['hoge'])
@@ -67,42 +83,53 @@ fuga
 
     def test_parse_if(self):
         p = nksm_parser.Parser()
-        hoge = {
-                'hoge': True,
-                'nest1': True,
-                'nest2': False,
-                }
-        p.variables = hoge
-        p.read_template('./test/templates/if_test.txt')
-        expected = textwrap.dedent('''
-            これはテストです。
-            hogeのときだけここが出力されます。
-            nest1のときだけここが出力されます。
-            ここは共通で出力されます。
-            hogeはTrueでした。
-            nest1はTrueでした。
-            nest2はFalseでした。
-            ''').strip() + "\n"
-        p.parse_if()
-        self.assertEqual(expected, p.parse_variable())
-        hoge = {
-                'hoge': True,
-                'nest1': True,
-                'nest2': True,
-                }
-        p.variables = hoge
-        expected = textwrap.dedent('''
-            これはテストです。
-            hogeのときだけここが出力されます。
-            nest1のときだけここが出力されます。
-            nest2のときだけここが出力されます。
-            ここは共通で出力されます。
-            hogeはTrueでした。
-            nest1はTrueでした。
-            nest2はTrueでした。
-            ''').strip() + "\n"
-        p.parse_if()
-        self.assertEqual(expected, p.parse_variable())
+        p.variables = { 'test': True }
+        tokens = [
+                'if test',
+                '    ほんわか',
+                'fi',
+                ]
+        expected = 'ほんわか\n'
+        self.assertEqual(expected, p.parse_if(tokens))
+
+        # p = nksm_parser.Parser()
+        # hoge = {
+        #         'hoge': True,
+        #         'nest1': True,
+        #         'nest2': False,
+        #         }
+        # p.variables = hoge
+        # p.read_template('./test/templates/if_test.txt')
+        # p.tokenize()
+        # expected = textwrap.dedent('''
+        #     これはテストです。
+        #     hogeのときだけここが出力されます。
+        #     nest1のときだけここが出力されます。
+        #     ここは共通で出力されます。
+        #     hogeはTrueでした。
+        #     nest1はTrueでした。
+        #     nest2はFalseでした。
+        #     ''').strip() + "\n"
+        # p.parse_if()
+        # self.assertEqual(expected, p.parse_variable())
+        # hoge = {
+        #         'hoge': True,
+        #         'nest1': True,
+        #         'nest2': True,
+        #         }
+        # p.variables = hoge
+        # expected = textwrap.dedent('''
+        #     これはテストです。
+        #     hogeのときだけここが出力されます。
+        #     nest1のときだけここが出力されます。
+        #     nest2のときだけここが出力されます。
+        #     ここは共通で出力されます。
+        #     hogeはTrueでした。
+        #     nest1はTrueでした。
+        #     nest2はTrueでした。
+        #     ''').strip() + "\n"
+        # p.parse_if()
+        # self.assertEqual(expected, p.parse_variable())
 
     def test_parse_rif(self):
         p = nksm_parser.Parser()
@@ -113,6 +140,7 @@ fuga
                 }
         p.variables = hoge
         p.read_template('./test/templates/rif_test.txt')
+        p.tokenize()
         expected = textwrap.dedent('''
             これはテストです。
                 hogeのときだけここが出力されます。
@@ -146,6 +174,7 @@ fuga
     def test_if_error(self):
         p = nksm_parser.Parser()
         p.read_template('./test/templates/if_error.txt')
+        p.tokenize()
         p.variables = {
                 'cond1': True,
                 'cond2': True,
@@ -156,6 +185,7 @@ fuga
     def test_if_not_boolean(self):
         p = nksm_parser.Parser()
         p.read_template('./test/templates/if_error.txt')
+        p.tokenize()
         p.variables = {
                 'cond1': True,
                 'cond2': 'fuckyou'
@@ -163,5 +193,16 @@ fuga
         with self.assertRaises(NotBooleanError):
             p.parse_if()
 
+    def test_tokenize(self):
+        p = nksm_parser.Parser()
+        p.read_template('./test/templates/test2.txt')
+        p.tokenize()
+        expected = ['this is test2.\n', '{{', ' hoge ', '}}', '\n']
+        self.assertEqual(expected, p.tokens)
+
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main()
+    test = ParserTest()
+    test.test_parse_variable()
+    test.test_parse_if()
+    test.test_iterate_token()

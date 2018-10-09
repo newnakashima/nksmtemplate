@@ -5,15 +5,22 @@ sys.path.append(os.getcwd() + '/error')
 from nksm_errors import IfClauseError, NotBooleanError
 import json
 class Parser:
+    """The template parser."""
 
-    # テンプレートの原文を保持しておくメンバ
     template = ''
+    """This keeps original template."""
 
-    # ifや変数をイジイジしたあとのテキストを保持しておく
     text = ''
+    """Text than has been replaced variables."""
 
-    # テンプレートに渡す変数
     variables = {}
+    """Variables for template."""
+
+    tokens = []
+    """Template splitted by token."""
+
+    replaced = []
+    """Tokens replaced by tempalte syntax."""
 
     def read_template(self, path):
         data = ''
@@ -28,9 +35,11 @@ class Parser:
     def set_variables(self, variables):
         self.variables = variables;
 
-    def parse_if(self):
-        lines = self.template.split("\n")
-        self.text = '\n'.join(self.__parse_if(lines))
+    def parse_if(self, tokens):
+        for t in tokens:
+
+        # lines = self.template.split("\n")
+        # self.text = '\n'.join(self.__parse_if(lines))
 
     def __parse_if(self, lines):
         indent = ''
@@ -98,21 +107,46 @@ class Parser:
             raise IfClauseError('if clauses is not closed properly.')
         return result_lines
 
-    def parse_variable(self):
-        result_str = self.text
-        dic = self.variables
-        for key in dic:
-            variable = re.compile('{{\s*' + key + '\s*}}')
-            result_str = variable.sub(str(dic[key]), result_str)
-        return result_str
+    def iterate_token(self):
+        v_flag = False
+        result = ''
+        v_reg = re.compile('^\s*\w+\s*$')
+        if_reg = re.compile('^\s*if\s+(.+)\s*$')
+        for t in self.tokens:
+            if_m = if_reg(t)
+            if t == '}}':
+                v_flag = False
+            elif v_flag:
+                if v_reg.match(t) != None:
+                    result += self.parse_variable(t)
+            elif t == '{{':
+                v_flag = True
+            else:
+                result += t
+        return result
+
+    def parse_variable(self, token):
+        return self.variables[token.strip()]
+
+    def tokenize(self):
+        reg = re.compile('{{|}}')
+        prev = 0
+        self.tokens = []
+        for r in reg.finditer(self.template):
+            self.tokens.append(self.template[prev:r.start()])
+            self.tokens.append(self.template[r.start():r.end()])
+            prev = r.end()
+        self.tokens.append(self.template[prev:])
 
     def render(self):
+        # self.tokenize()
         self.parse_if()
         text = self.parse_variable()
         print(text, end='')
 
     def run(self):
         self.read_template(sys.argv[1])
+        self.tokenize()
         self.read_json(sys.argv[2])
         self.render()
 
