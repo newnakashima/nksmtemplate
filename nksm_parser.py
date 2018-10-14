@@ -37,6 +37,7 @@ class Parser:
 
     def parse_if(self, tokens):
         for t in tokens:
+            pass
 
         # lines = self.template.split("\n")
         # self.text = '\n'.join(self.__parse_if(lines))
@@ -129,12 +130,38 @@ class Parser:
         return self.variables[token.strip()]
 
     def tokenize(self):
-        reg = re.compile('{{|}}')
+        # reg = re.compile('{{|}}')
+        reg = re.compile('{{(.+)}}')
+        v_reg = re.compile('^\s*\w+\s*$')
+        if_reg = re.compile('^\s*if\s+(.+)\s*$')
+        fi_reg = re.compile('^\s*fi\s*$')
+        if_level = 0
+        for_level = 0
         prev = 0
         self.tokens = []
         for r in reg.finditer(self.template):
-            self.tokens.append(self.template[prev:r.start()])
-            self.tokens.append(self.template[r.start():r.end()])
+            t_value = self.template[prev:r.start()]
+            t_value = self.template[r.start():r.end()]
+            if t_value == '':
+                continue
+            t_type = ''
+            if v_reg.match(t_value) != None:
+                t_type = 'variable'
+            elif if_reg.match(t_value) != None:
+                t_type = 'if_condition'
+            elif fi_reg.match(t_value) != None:
+                t_type = 'if_close'
+            else:
+                t_type = 'text'
+            
+            self.tokens.append({
+                'value':     t_value,
+                'type':      t_type,
+                'if_level':  if_level,
+                'for_level': for_level,
+            })
+            if t_type == 'if_close':
+                if_level -= 1
             prev = r.end()
         self.tokens.append(self.template[prev:])
 

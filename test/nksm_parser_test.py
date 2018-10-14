@@ -85,9 +85,26 @@ class ParserTest(unittest.TestCase):
         p = nksm_parser.Parser()
         p.variables = { 'test': True }
         tokens = [
-                'if test',
-                '    ほんわか',
-                'fi',
+                {
+                    'value': 'ふふふふ\n',
+                    'type': 'text',
+                    'if_level': 0,
+                    'for_level': 0 },
+                {
+                    'value': 'if test',
+                    'type': 'if_condition',
+                    'if_level': 1,
+                    'for_level': 0 },
+                {
+                    'value': '    ほんわか',
+                    'type': 'text',
+                    'if_level': 1,
+                    'for_level': 0 },
+                {
+                    'value': 'fi',
+                    'type': 'if_close',
+                    'if_level': 0,
+                    'for_level': 0 },
                 ]
         expected = 'ほんわか\n'
         self.assertEqual(expected, p.parse_if(tokens))
@@ -193,16 +210,61 @@ class ParserTest(unittest.TestCase):
         with self.assertRaises(NotBooleanError):
             p.parse_if()
 
+    def test_create_token(self):
+        p = nksm_parser.Parser()
+        input = ''
+
     def test_tokenize(self):
         p = nksm_parser.Parser()
-        p.read_template('./test/templates/test2.txt')
+        p.read_template('./test/templates/tokenize_test.txt')
         p.tokenize()
-        expected = ['this is test2.\n', '{{', ' hoge ', '}}', '\n']
-        self.assertEqual(expected, p.tokens)
+        expected = [
+                {
+                    'value': 'this is ',
+                    'type': 'text',
+                    'if_level': 0,
+                    'for_level': 0 },
+                {
+                    'value': 'test',
+                    'type': 'variable',
+                    'if_level': 0,
+                    'for_level': 0 },
+                {
+                    'value': '\n',
+                    'type': 'text',
+                    'if_level': 0,
+                    'for_level': 0 },
+                {
+                    'value': 'if hoge',
+                    'type': 'if_condition',
+                    'if_level': 1,
+                    'for_level': 0 },
+                {
+                    'value': '\n    ',
+                    'type': 'text',
+                    'if_level': 0,
+                    'for_level': 0 },
+                {
+                    'value': 'fuga',
+                    'type': 'variable',
+                    'if_level': 1,
+                    'for_level': 0 },
+                {
+                    'value': 'fi',
+                    'type': 'if_close',
+                    'if_level': 1,
+                    'for_level': 0 },
+                ]
+        for i in range(len(expected)):
+            self.assertEqual(expected[i]['value'], p.tokens[i]['value'])
+            self.assertEqual(expected[i]['type'], p.tokens[i]['type'])
+            self.assertEqual(expected[i]['if_level'], p.tokens[i]['if_level'])
+            self.assertEqual(expected[i]['for_level'], p.tokens[i]['for_level'])
 
 if __name__ == '__main__':
     # unittest.main()
     test = ParserTest()
     test.test_parse_variable()
-    test.test_parse_if()
-    test.test_iterate_token()
+    test.test_tokenize()
+    # test.test_iterate_token()
+    # test.test_parse_if()
