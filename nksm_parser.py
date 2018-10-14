@@ -130,7 +130,6 @@ class Parser:
         return self.variables[token.strip()]
 
     def tokenize(self):
-        # reg = re.compile('{{|}}')
         reg = re.compile('{{(.+)}}')
         v_reg = re.compile('^\s*\w+\s*$')
         if_reg = re.compile('^\s*if\s+(.+)\s*$')
@@ -140,19 +139,25 @@ class Parser:
         prev = 0
         self.tokens = []
         for r in reg.finditer(self.template):
-            t_value = self.template[prev:r.start()]
-            t_value = self.template[r.start():r.end()]
-            if t_value == '':
+            pre_value = self.template[prev:r.start()]
+            if pre_value == '':
                 continue
+            self.tokens.append({
+                'value':     pre_value,
+                'type':      'text',
+                'if_level':  if_level,
+                'for_level': for_level
+            })
+
+            t_value = r.group(1)
             t_type = ''
-            if v_reg.match(t_value) != None:
-                t_type = 'variable'
-            elif if_reg.match(t_value) != None:
+            if if_reg.match(t_value) != None:
                 t_type = 'if_condition'
+                if_level += 1
             elif fi_reg.match(t_value) != None:
                 t_type = 'if_close'
             else:
-                t_type = 'text'
+                t_type = 'variable'
             
             self.tokens.append({
                 'value':     t_value,

@@ -213,6 +213,7 @@ class ParserTest(unittest.TestCase):
     def test_create_token(self):
         p = nksm_parser.Parser()
         input = ''
+        # ここにcreate_token()のテスト書く
 
     def test_tokenize(self):
         p = nksm_parser.Parser()
@@ -242,11 +243,16 @@ class ParserTest(unittest.TestCase):
                 {
                     'value': '\n    ',
                     'type': 'text',
-                    'if_level': 0,
+                    'if_level': 1,
                     'for_level': 0 },
                 {
                     'value': 'fuga',
                     'type': 'variable',
+                    'if_level': 1,
+                    'for_level': 0 },
+                {
+                    'value': '\n',
+                    'type':  'text',
                     'if_level': 1,
                     'for_level': 0 },
                 {
