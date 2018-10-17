@@ -24,29 +24,18 @@ class ParserTest(unittest.TestCase):
                 }
         self.assertEqual(expected, p.variables)
 
-    def test_set_variables(self):
-        p = nksm_parser.Parser()
-        variables = {
-                'hoge': 'fuga',
-                'piyo': 'piyopiyo',
-                }
-        p.set_variables(variables)
-        self.assertEqual(variables, p.variables)
-
     def test_parse_variable(self):
         p = nksm_parser.Parser()
+        p.read_template('./test/templates/test2.txt')
+        p.tokenize()
         p.variables = {
-                'test': 'fuga',
-                }
-        p.text = '''this
-is
-{{ test }}
-'''
-        expected = '''this
-is
-fuga
-'''
-        self.assertEqual(expected, p.parse_variable())
+            'hoge': 'unko',
+        }
+        expected = textwrap.dedent('''
+        this is test2.
+        unko
+        ''').strip()
+        self.assertEqual(expected, p.parse_syntax())
 
     def test_render(self):
         self.maxDiff = 2000
@@ -67,101 +56,216 @@ fuga
 
     def test_parse_if(self):
         p = nksm_parser.Parser()
-        hoge = {
-                'hoge': True,
-                'nest1': True,
-                'nest2': False,
-                }
-        p.variables = hoge
-        p.read_template('./test/templates/if_test.txt')
-        expected = textwrap.dedent('''
-            これはテストです。
-            hogeのときだけここが出力されます。
-            nest1のときだけここが出力されます。
-            ここは共通で出力されます。
-            hogeはTrueでした。
-            nest1はTrueでした。
-            nest2はFalseでした。
-            ''').strip() + "\n"
-        p.parse_if()
-        self.assertEqual(expected, p.parse_variable())
-        hoge = {
-                'hoge': True,
-                'nest1': True,
-                'nest2': True,
-                }
-        p.variables = hoge
-        expected = textwrap.dedent('''
-            これはテストです。
-            hogeのときだけここが出力されます。
-            nest1のときだけここが出力されます。
-            nest2のときだけここが出力されます。
-            ここは共通で出力されます。
-            hogeはTrueでした。
-            nest1はTrueでした。
-            nest2はTrueでした。
-            ''').strip() + "\n"
-        p.parse_if()
-        self.assertEqual(expected, p.parse_variable())
+        p.variables = {
+            'test': True,
+            'test2': False,
+        }
+        p.tokens = [
+            {
+                'value': 'ふふふふ\n',
+                'type': 'text',
+                'if_level': 0,
+                'for_level': 0,
+            }, {
+                'value': 'if test',
+                'type': 'if_condition',
+                'if_level': 1,
+                'for_level': 0,
+            }, {
+                'value': '\n    ほんわか\n',
+                'type': 'text',
+                'if_level': 1,
+                'for_level': 0,
+            }, {
+                'value': 'if test2',
+                'type': 'if_condition',
+                'if_level': 2,
+                'for_level': 0,
+            }, {
+                'value': '\n        出ないはず\n',
+                'type': 'text',
+                'if_level': 2,
+                'for_level': 0,
+            }, {
+                'value': 'fi',
+                'type': 'if_close',
+                'if_level': 2,
+                'for_level': 0,
+            }, {
+                'value': 'fi',
+                'type': 'if_close',
+                'if_level': 0,
+                'for_level': 0,
+            }, {
+                'value': '\n終わったあと\n',
+                'type': 'text',
+                'if_level': 0,
+                'for_level': 0,
+            }
+        ]
+        expected = 'ふふふふ\nほんわか\n終わったあと\n'
+        self.assertEqual(expected, p.parse_syntax())
 
     def test_parse_rif(self):
         p = nksm_parser.Parser()
-        hoge = {
-                'hoge': True,
-                'nest1': True,
-                'nest2': False,
-                }
-        p.variables = hoge
-        p.read_template('./test/templates/rif_test.txt')
-        expected = textwrap.dedent('''
-            これはテストです。
-                hogeのときだけここが出力されます。
-                    nest1のときだけここが出力されます。
-            ここは共通で出力されます。
-            hogeはTrueでした。
-            nest1はTrueでした。
-            nest2はFalseでした。
-            ''').strip() + "\n"
-        p.parse_if()
-        self.assertEqual(expected, p.parse_variable())
-        hoge = {
-                'hoge': True,
-                'nest1': True,
-                'nest2': True,
-                }
-        p.variables = hoge
-        expected = textwrap.dedent('''
-            これはテストです。
-                hogeのときだけここが出力されます。
-                    nest1のときだけここが出力されます。
-                        nest2のときだけここが出力されます。
-            ここは共通で出力されます。
-            hogeはTrueでした。
-            nest1はTrueでした。
-            nest2はTrueでした。
-            ''').strip() + "\n"
-        p.parse_if()
-        self.assertEqual(expected, p.parse_variable())
+        p.variables = {
+            'test': True,
+            'test2': True,
+        }
+        p.tokens = [
+            {
+                'value': 'ふふふふ\n',
+                'type': 'text',
+                'if_level': 0,
+                'for_level': 0,
+            }, {
+                'value': 'rif test',
+                'type': 'if_condition',
+                'if_level': 1,
+                'for_level': 0,
+            }, {
+                'value': '\n    ほんわか\n',
+                'type': 'text',
+                'if_level': 1,
+                'for_level': 0,
+            }, {
+                'value': 'if test2',
+                'type': 'if_condition',
+                'if_level': 2,
+                'for_level': 0,
+            }, {
+                'value': '\n        出るはず\n',
+                'type': 'text',
+                'if_level': 2,
+                'for_level': 0,
+            }, {
+                'value': 'fi',
+                'type': 'if_close',
+                'if_level': 2,
+                'for_level': 0,
+            }, {
+                'value': 'fi',
+                'type': 'if_close',
+                'if_level': 0,
+                'for_level': 0,
+            }, {
+                'value': '\n終わったあと\n',
+                'type': 'text',
+                'if_level': 0,
+                'for_level': 0,
+            }
+        ]
+        expected = '''ふふふふ
+    ほんわか
+        出るはず
+終わったあと
+'''
+        self.assertEqual(expected, p.parse_syntax())
+
 
     def test_if_error(self):
         p = nksm_parser.Parser()
         p.read_template('./test/templates/if_error.txt')
+        p.tokenize()
         p.variables = {
                 'cond1': True,
                 'cond2': True,
                 }
         with self.assertRaises(IfClauseError):
-            p.parse_if()
+            p.parse_syntax()
 
     def test_if_not_boolean(self):
         p = nksm_parser.Parser()
         p.read_template('./test/templates/if_error.txt')
+        p.tokenize()
         p.variables = {
                 'cond1': True,
                 'cond2': 'fuckyou'
                 }
         with self.assertRaises(NotBooleanError):
-            p.parse_if()
+            p.parse_syntax()
+
+    def test_tokenize(self):
+        p = nksm_parser.Parser()
+        p.read_template('./test/templates/tokenize_test.txt')
+        p.tokenize()
+        expected = [
+                {
+                    'value': 'this is ',
+                    'type': 'text',
+                    'if_level': 0,
+                    'for_level': 0 },
+                {
+                    'value': 'test',
+                    'type': 'variable',
+                    'if_level': 0,
+                    'for_level': 0 },
+                {
+                    'value': '\n',
+                    'type': 'text',
+                    'if_level': 0,
+                    'for_level': 0 },
+                {
+                    'value': 'if hoge',
+                    'type': 'if_condition',
+                    'if_level': 1,
+                    'for_level': 0 },
+                {
+                    'value': '\n    ',
+                    'type': 'text',
+                    'if_level': 1,
+                    'for_level': 0 },
+                {
+                    'value': 'fuga',
+                    'type': 'variable',
+                    'if_level': 1,
+                    'for_level': 0 },
+                {
+                    'value': '\n    ',
+                    'type': 'text',
+                    'if_level': 1,
+                    'for_level': 0 },
+                {
+                    'value': 'rif hoge2',
+                    'type': 'if_condition',
+                    'if_level': 2,
+                    'for_level': 0 },
+                {
+                    'value': '\n        ',
+                    'type': 'text',
+                    'if_level': 2,
+                    'for_level': 0 },
+                {
+                    'value': 'piyo',
+                    'type': 'variable',
+                    'if_level': 2,
+                    'for_level': 0 },
+                {
+                    'value': '\n    ',
+                    'type': 'text',
+                    'if_level': 2,
+                    'for_level': 0 },
+                {
+                    'value': 'fi',
+                    'type': 'if_close',
+                    'if_level': 2,
+                    'for_level': 0, },
+                {
+                    'value': '\n',
+                    'type':  'text',
+                    'if_level': 1,
+                    'for_level': 0 },
+                {
+                    'value': 'fi',
+                    'type': 'if_close',
+                    'if_level': 1,
+                    'for_level': 0 },
+                ]
+        for i in range(len(expected)):
+            self.assertEqual(expected[i]['value'], p.tokens[i]['value'])
+            self.assertEqual(expected[i]['type'], p.tokens[i]['type'])
+            self.assertEqual(expected[i]['if_level'], p.tokens[i]['if_level'])
+            self.assertEqual(expected[i]['for_level'], p.tokens[i]['for_level'])
 
 if __name__ == '__main__':
     unittest.main()

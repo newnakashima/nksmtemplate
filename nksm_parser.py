@@ -5,15 +5,22 @@ sys.path.append(os.getcwd() + '/error')
 from nksm_errors import IfClauseError, NotBooleanError
 import json
 class Parser:
+    """The template parser."""
 
-    # テンプレートの原文を保持しておくメンバ
+    # Original template.
     template = ''
 
-    # ifや変数をイジイジしたあとのテキストを保持しておく
+    # Text that has been replaced with variables.
     text = ''
 
-    # テンプレートに渡す変数
+    # Variables for template.
     variables = {}
+
+    # Template splitted by token.
+    tokens = []
+
+    # Tokens replaced by tempalte syntax.
+    replaced = []
 
     def read_template(self, path):
         data = ''
@@ -25,91 +32,101 @@ class Parser:
         with open(path, 'r') as f:
             self.variables = json.load(f)
 
-    def set_variables(self, variables):
-        self.variables = variables;
+    def parse_syntax(self):
+        out = ''
+        ignore_level = -1
+        raw_flag = False
+        for t in self.tokens:
+            if t['if_level'] < ignore_level:
+                ignore_level = -1
+            if ignore_level != -1 and t['if_level'] >= ignore_level:
+                # if条件がFalseの範囲は出力しない
+                continue
+            if t['type'] == 'text':
+                m = re.match('\n?(\s*(.*))', t['value'], re.M|re.S)
+                if raw_flag:
+                    out += m.group(1)
+                else:
+                    out += m.group(2)
+            elif t['type'] == 'variable':
+                out += self.variables[t['value'].strip()]
+            elif t['type'] == 'if_condition':
+                m = re.match('\s*(r?if)(\s*)(\w+)\s*', t['value'])
+                if m == None:
+                    raise IfClauseError()
+                if m.group(1) == 'rif':
+                    raw_flag = True
+                if (
+                        self.variables[m.group(3)] != True and
+                        self.variables[m.group(3)] != False
+                    ):
+                    raise NotBooleanError()
+                if not self.variables[m.group(3)]:
+                    ignore_level = t['if_level']
+            elif t['type'] == 'if_close':
+                ignore_level = -1
+                saved_indent = ''
+                raw_flag = False
+        if self.tokens[-1]['if_level'] != 0:
+            raise IfClauseError()
+        return out
 
-    def parse_if(self):
-        lines = self.template.split("\n")
-        self.text = '\n'.join(self.__parse_if(lines))
+    def parse_variable(self, token):
+        return self.variables[token.strip()]
 
-    def __parse_if(self, lines):
-        indent = ''
-        ignore_flg = False
-        inside_if = False
-        raw_flg = False
-        result_lines = []
-        nested_lines = []
-        if_count = 0
-        ind_reg = re.compile('^(\s*)\S')
-        if_reg = re.compile('^\s*{{\s*(r)?if\s*(\w+)\s*}}$')
-        fi_reg = re.compile('^\s*{{\s*fi\s*}}$')
-        for line in lines:
-            if_matched = if_reg.match(line)
-            fi_matched = fi_reg.match(line)
-            if if_matched != None:
-                if_count += 1
-                ind_matched = ind_reg.match(line)
-                if (ind_matched != None and not inside_if):
-                    # トップレベルのif文行の場合
-                    indent = ind_matched.group(1)
-                    raw_flg = if_matched.group(1) != None
-                if inside_if:
-                    # ifブロック内にif文がある => ネスト
-                    if not raw_flg:
-                        # ネスト内のインデントは最初のif文行にそろえる
-                        line = re.sub('^\s*', indent, line)
-                    nested_lines.append(line)
-                    continue
-                inside_if = True
-                # if文の行の場合は出力行に含めない
-                if type(self.variables[if_matched.group(2)]) is not bool:
-                    raise NotBooleanError
-                if not self.variables[if_matched.group(2)]:
-                    # ifの条件がFalseのときは無視フラグを立てる
-                    ignore_flg = True
+    def tokenize(self):
+        reg = re.compile('{{(.+)}}')
+        v_reg = re.compile('^\s*\w+\s*$')
+        if_reg = re.compile('^\s*(r?if)\s+(.+)\s*$')
+        fi_reg = re.compile('^\s*fi\s*$')
+        if_level = 0
+        for_level = 0
+        prev = 0
+        self.tokens = []
+        for r in reg.finditer(self.template):
+            pre_value = self.template[prev:r.start()]
+            if pre_value == '':
                 continue
-            if fi_matched != None:
-                if_count -= 1
-                if if_count > 0:
-                    # if_countがまだ1以上 => ネスト
-                    nested_lines.append(line)
-                    if if_count == 1:
-                        # if_countが1 => ネスト終了
-                        result_lines.extend(self.__parse_if(nested_lines))
-                    continue
-                inside_if = False
-                # if文から抜けるときは無視フラグ解除。出力行に含めない
-                ignore_flg = False
-                continue
-            if ignore_flg:
-                # if文の中かつ条件に一致しない場合は出力しない
-                continue
-            if if_count > 1:
-                # ネスト内の普通の行
-                nested_lines.append(line)
-                continue
-            if inside_if and not raw_flg and if_count == 1:
-                # if文行のインデントを引き継ぐ
-                line = re.sub('^\s*', indent, line)
-            # それ以外の場合は普通に出力
-            result_lines.append(line)
-        if if_count != 0:
-            # パース終了時にif_countが0じゃない => ifが全部閉じられてない
-            raise IfClauseError('if clauses is not closed properly.')
-        return result_lines
+            self.tokens.append({
+                'value':     pre_value,
+                'type':      'text',
+                'if_level':  if_level,
+                'for_level': for_level
+            })
 
-    def parse_variable(self):
-        result_str = self.text
-        dic = self.variables
-        for key in dic:
-            variable = re.compile('{{\s*' + key + '\s*}}')
-            result_str = variable.sub(str(dic[key]), result_str)
-        return result_str
+            t_value = r.group(1)
+            t_type = ''
+            if_m = if_reg.match(t_value)
+            if if_m != None:
+                t_type = 'if_condition'
+                if_level += 1
+            elif fi_reg.match(t_value) != None:
+                t_type = 'if_close'
+            else:
+                t_type = 'variable'
+            
+            self.tokens.append({
+                'value':     t_value,
+                'type':      t_type,
+                'if_level':  if_level,
+                'for_level': for_level,
+            })
+            if t_type == 'if_close':
+                if_level -= 1
+            prev = r.end()
+        if self.template[prev:] != '':
+            # 最後に追加すべき文字列があれば追加
+            self.tokens.append({
+                'value': self.template[prev:],
+                'type': 'text',
+                'if_level': if_level,
+                'for_level': for_level,
+            })
 
     def render(self):
-        self.parse_if()
-        text = self.parse_variable()
-        print(text, end='')
+        self.tokenize()
+        text = self.parse_syntax()
+        print(text)
 
     def run(self):
         self.read_template(sys.argv[1])
