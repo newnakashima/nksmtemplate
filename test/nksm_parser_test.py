@@ -24,44 +24,18 @@ class ParserTest(unittest.TestCase):
                 }
         self.assertEqual(expected, p.variables)
 
-    def test_iterate_token(self):
+    def test_parse_variable(self):
         p = nksm_parser.Parser()
         p.read_template('./test/templates/test2.txt')
         p.tokenize()
-        p.set_variables({
-            'hoge': 'ほんわか',
-            })
+        p.variables = {
+            'hoge': 'unko',
+        }
         expected = textwrap.dedent('''
         this is test2.
-        ほんわか
-        ''').strip() + '\n'
-        self.assertEqual(expected, p.iterate_token())
-        p.read_template('./test/templates/test_iterate_token.txt')
-        p.tokenize()
-        p.set_variables({ 'test': True })
-        expected = textwrap.dedent('''
-        ふふふふ
-        ほんわか
+        unko
         ''').strip()
-        actual = p.iterate_token()
-
-    def test_set_variables(self):
-        p = nksm_parser.Parser()
-        variables = {
-                'hoge': 'fuga',
-                'piyo': 'piyopiyo',
-                }
-        p.set_variables(variables)
-        self.assertEqual(variables, p.variables)
-
-    def test_parse_variable(self):
-        p = nksm_parser.Parser()
-        p.set_variables({
-                'hoge': 'unko',
-            })
-        token = ' hoge '
-        expected = 'unko'
-        self.assertEqual(expected, p.parse_variable(token))
+        self.assertEqual(expected, p.parse_syntax())
 
     def test_render(self):
         self.maxDiff = 2000
@@ -73,7 +47,6 @@ class ParserTest(unittest.TestCase):
                 }
         p.variables = hoge
         p.read_template('./test/templates/test2.txt')
-        p.tokenize()
         expected = '''this is test2.
 {hoge}
 '''.format(hoge=hoge['hoge'])
@@ -87,7 +60,7 @@ class ParserTest(unittest.TestCase):
             'test': True,
             'test2': False,
         }
-        tokens = [
+        p.tokens = [
             {
                 'value': 'ふふふふ\n',
                 'type': 'text',
@@ -131,7 +104,7 @@ class ParserTest(unittest.TestCase):
             }
         ]
         expected = 'ふふふふ\nほんわか\n終わったあと\n'
-        self.assertEqual(expected, p.parse_if(tokens))
+        self.assertEqual(expected, p.parse_syntax())
 
     def test_parse_rif(self):
         p = nksm_parser.Parser()
@@ -139,7 +112,7 @@ class ParserTest(unittest.TestCase):
             'test': True,
             'test2': True,
         }
-        tokens = [
+        p.tokens = [
             {
                 'value': 'ふふふふ\n',
                 'type': 'text',
@@ -187,7 +160,7 @@ class ParserTest(unittest.TestCase):
         出るはず
 終わったあと
 '''
-        self.assertEqual(expected, p.parse_if(tokens))
+        self.assertEqual(expected, p.parse_syntax())
 
 
     def test_if_error(self):
@@ -199,7 +172,7 @@ class ParserTest(unittest.TestCase):
                 'cond2': True,
                 }
         with self.assertRaises(IfClauseError):
-            p.parse_if()
+            p.parse_syntax()
 
     def test_if_not_boolean(self):
         p = nksm_parser.Parser()
@@ -210,7 +183,7 @@ class ParserTest(unittest.TestCase):
                 'cond2': 'fuckyou'
                 }
         with self.assertRaises(NotBooleanError):
-            p.parse_if()
+            p.parse_syntax()
 
     def test_tokenize(self):
         p = nksm_parser.Parser()
@@ -295,9 +268,4 @@ class ParserTest(unittest.TestCase):
             self.assertEqual(expected[i]['for_level'], p.tokens[i]['for_level'])
 
 if __name__ == '__main__':
-    # unittest.main()
-    test = ParserTest()
-    test.test_parse_variable()
-    test.test_tokenize()
-    test.test_parse_if()
-    test.test_parse_rif()
+    unittest.main()

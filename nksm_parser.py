@@ -32,14 +32,11 @@ class Parser:
         with open(path, 'r') as f:
             self.variables = json.load(f)
 
-    def set_variables(self, variables):
-        self.variables = variables;
-
-    def parse_if(self, tokens):
+    def parse_syntax(self):
         out = ''
         ignore_level = -1
         raw_flag = False
-        for t in tokens:
+        for t in self.tokens:
             if t['if_level'] < ignore_level:
                 ignore_level = -1
             if ignore_level != -1 and t['if_level'] >= ignore_level:
@@ -51,18 +48,27 @@ class Parser:
                     out += m.group(1)
                 else:
                     out += m.group(2)
+            elif t['type'] == 'variable':
+                out += self.variables[t['value'].strip()]
             elif t['type'] == 'if_condition':
                 m = re.match('\s*(r?if)(\s*)(\w+)\s*', t['value'])
                 if m == None:
                     raise IfClauseError()
                 if m.group(1) == 'rif':
                     raw_flag = True
+                if (
+                        self.variables[m.group(3)] != True and
+                        self.variables[m.group(3)] != False
+                    ):
+                    raise NotBooleanError()
                 if not self.variables[m.group(3)]:
                     ignore_level = t['if_level']
             elif t['type'] == 'if_close':
                 ignore_level = -1
                 saved_indent = ''
                 raw_flag = False
+        if self.tokens[-1]['if_level'] != 0:
+            raise IfClauseError()
         return out
 
     def parse_variable(self, token):
@@ -108,13 +114,19 @@ class Parser:
             if t_type == 'if_close':
                 if_level -= 1
             prev = r.end()
-        self.tokens.append(self.template[prev:])
+        if self.template[prev:] != '':
+            # 最後に追加すべき文字列があれば追加
+            self.tokens.append({
+                'value': self.template[prev:],
+                'type': 'text',
+                'if_level': if_level,
+                'for_level': for_level,
+            })
 
     def render(self):
         self.tokenize()
-        self.parse_if()
-        # text = self.parse_variable()
-        print(text, end='')
+        text = self.parse_syntax()
+        print(text)
 
     def run(self):
         self.read_template(sys.argv[1])
