@@ -36,6 +36,7 @@ class Parser:
         out = ''
         ignore_level = -1
         raw_flag = False
+        indent = ['']
         for t in self.tokens:
             if t['if_level'] < ignore_level:
                 ignore_level = -1
@@ -47,15 +48,15 @@ class Parser:
                 if raw_flag:
                     out += m.group(1)
                 else:
-                    out += m.group(2)
+                    out += indent[-1] + m.group(2)
             elif t['type'] == 'variable':
                 out += self.variables[t['value'].strip()]
             elif t['type'] == 'if_condition':
                 m = re.match('\s*(r?if)(\s*)(\w+)\s*', t['value'])
                 if m == None:
                     raise IfClauseError()
-                if m.group(1) == 'rif':
-                    raw_flag = True
+                raw_flag = m.group(1) == 'rif'
+                indent.append(t['indent'])
                 if (
                         self.variables[m.group(3)] != True and
                         self.variables[m.group(3)] != False
@@ -67,6 +68,7 @@ class Parser:
                 ignore_level = -1
                 saved_indent = ''
                 raw_flag = False
+                indent.pop()
         if self.tokens[-1]['if_level'] != 0:
             raise IfClauseError()
         return out
@@ -76,6 +78,7 @@ class Parser:
 
     def tokenize(self):
         reg = re.compile('{{(.+)}}')
+        ind_reg = re.compile('^\n*([ \t]*)')
         v_reg = re.compile('^\s*\w+\s*$')
         if_reg = re.compile('^\s*(r?if)\s+(.+)\s*$')
         fi_reg = re.compile('^\s*fi\s*$')
@@ -83,10 +86,13 @@ class Parser:
         for_level = 0
         prev = 0
         self.tokens = []
+        indent = ''
         for r in reg.finditer(self.template):
             pre_value = self.template[prev:r.start()]
             if pre_value == '':
                 continue
+            m = ind_reg.match(pre_value)
+            indent = m.group(1)
             self.tokens.append({
                 'value':     pre_value,
                 'type':      'text',
@@ -94,24 +100,21 @@ class Parser:
                 'for_level': for_level
             })
 
-            t_value = r.group(1)
-            t_type = ''
-            if_m = if_reg.match(t_value)
+            token = {}
+            token['value'] = r.group(1)
+            if_m = if_reg.match(token['value'])
             if if_m != None:
-                t_type = 'if_condition'
+                token['type'] = 'if_condition'
+                token['indent'] = indent
                 if_level += 1
-            elif fi_reg.match(t_value) != None:
-                t_type = 'if_close'
+            elif fi_reg.match(token['value']) != None:
+                token['type'] = 'if_close'
             else:
-                t_type = 'variable'
-            
-            self.tokens.append({
-                'value':     t_value,
-                'type':      t_type,
-                'if_level':  if_level,
-                'for_level': for_level,
-            })
-            if t_type == 'if_close':
+                token['type'] = 'variable'
+            token['if_level'] = if_level
+            token['for_level'] = for_level
+            self.tokens.append(token)
+            if token['type'] == 'if_close':
                 if_level -= 1
             prev = r.end()
         if self.template[prev:] != '':
