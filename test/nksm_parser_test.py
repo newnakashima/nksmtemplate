@@ -83,70 +83,55 @@ class ParserTest(unittest.TestCase):
 
     def test_parse_if(self):
         p = nksm_parser.Parser()
-        p.variables = { 'test': True }
+        p.variables = {
+            'test': True,
+            'test2': False,
+        }
         tokens = [
-                {
-                    'value': 'ふふふふ\n',
-                    'type': 'text',
-                    'if_level': 0,
-                    'for_level': 0 },
-                {
-                    'value': 'if test',
-                    'type': 'if_condition',
-                    'if_level': 1,
-                    'for_level': 0 },
-                {
-                    'value': '    ほんわか',
-                    'type': 'text',
-                    'if_level': 1,
-                    'for_level': 0 },
-                {
-                    'value': 'fi',
-                    'type': 'if_close',
-                    'if_level': 0,
-                    'for_level': 0 },
-                ]
-        expected = 'ほんわか\n'
+            {
+                'value': 'ふふふふ\n',
+                'type': 'text',
+                'if_level': 0,
+                'for_level': 0,
+            }, {
+                'value': 'if test',
+                'type': 'if_condition',
+                'if_level': 1,
+                'for_level': 0,
+            }, {
+                'value': '\n    ほんわか\n',
+                'type': 'text',
+                'if_level': 1,
+                'for_level': 0,
+            }, {
+                'value': 'if test2',
+                'type': 'if_condition',
+                'if_level': 2,
+                'for_level': 0,
+            }, {
+                'value': '\n        出ないはず\n',
+                'type': 'text',
+                'if_level': 2,
+                'for_level': 0,
+            }, {
+                'value': 'fi',
+                'type': 'if_close',
+                'if_level': 2,
+                'for_level': 0,
+            }, {
+                'value': 'fi',
+                'type': 'if_close',
+                'if_level': 0,
+                'for_level': 0,
+            }, {
+                'value': '\n終わったあと\n',
+                'type': 'text',
+                'if_level': 0,
+                'for_level': 0,
+            }
+        ]
+        expected = 'ふふふふ\nほんわか\n終わったあと\n'
         self.assertEqual(expected, p.parse_if(tokens))
-
-        # p = nksm_parser.Parser()
-        # hoge = {
-        #         'hoge': True,
-        #         'nest1': True,
-        #         'nest2': False,
-        #         }
-        # p.variables = hoge
-        # p.read_template('./test/templates/if_test.txt')
-        # p.tokenize()
-        # expected = textwrap.dedent('''
-        #     これはテストです。
-        #     hogeのときだけここが出力されます。
-        #     nest1のときだけここが出力されます。
-        #     ここは共通で出力されます。
-        #     hogeはTrueでした。
-        #     nest1はTrueでした。
-        #     nest2はFalseでした。
-        #     ''').strip() + "\n"
-        # p.parse_if()
-        # self.assertEqual(expected, p.parse_variable())
-        # hoge = {
-        #         'hoge': True,
-        #         'nest1': True,
-        #         'nest2': True,
-        #         }
-        # p.variables = hoge
-        # expected = textwrap.dedent('''
-        #     これはテストです。
-        #     hogeのときだけここが出力されます。
-        #     nest1のときだけここが出力されます。
-        #     nest2のときだけここが出力されます。
-        #     ここは共通で出力されます。
-        #     hogeはTrueでした。
-        #     nest1はTrueでした。
-        #     nest2はTrueでした。
-        #     ''').strip() + "\n"
-        # p.parse_if()
-        # self.assertEqual(expected, p.parse_variable())
 
     def test_parse_rif(self):
         p = nksm_parser.Parser()
@@ -210,11 +195,6 @@ class ParserTest(unittest.TestCase):
         with self.assertRaises(NotBooleanError):
             p.parse_if()
 
-    def test_create_token(self):
-        p = nksm_parser.Parser()
-        input = ''
-        # ここにcreate_token()のテスト書く
-
     def test_tokenize(self):
         p = nksm_parser.Parser()
         p.read_template('./test/templates/tokenize_test.txt')
@@ -272,5 +252,4 @@ if __name__ == '__main__':
     test = ParserTest()
     test.test_parse_variable()
     test.test_tokenize()
-    # test.test_iterate_token()
-    # test.test_parse_if()
+    test.test_parse_if()
