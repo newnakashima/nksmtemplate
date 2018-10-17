@@ -69,6 +69,7 @@ class ParserTest(unittest.TestCase):
             }, {
                 'value': 'if test',
                 'type': 'if_condition',
+                'indent': '',
                 'if_level': 1,
                 'for_level': 0,
             }, {
@@ -79,6 +80,7 @@ class ParserTest(unittest.TestCase):
             }, {
                 'value': 'if test2',
                 'type': 'if_condition',
+                'indent': '    ',
                 'if_level': 2,
                 'for_level': 0,
             }, {
@@ -106,6 +108,60 @@ class ParserTest(unittest.TestCase):
         expected = 'ふふふふ\nほんわか\n終わったあと\n'
         self.assertEqual(expected, p.parse_syntax())
 
+    def test_parse_if_indent(self):
+        p = nksm_parser.Parser()
+        p.variables = {
+            'test': True,
+            'test2': True,
+        }
+        p.tokens = [
+            {
+                'value': 'ふふふふ\n',
+                'type': 'text',
+                'if_level': 0,
+                'for_level': 0,
+            }, {
+                'value': 'rif test',
+                'type': 'if_condition',
+                'indent': '',
+                'if_level': 1,
+                'for_level': 0,
+            }, {
+                'value': '\n    ほんわか\n',
+                'type': 'text',
+                'if_level': 1,
+                'for_level': 0,
+            }, {
+                'value': 'if test2',
+                'type': 'if_condition',
+                'indent': '    ',
+                'if_level': 2,
+                'for_level': 0,
+            }, {
+                'value': '\n        出るはず\n',
+                'type': 'text',
+                'if_level': 2,
+                'for_level': 0,
+            }, {
+                'value': 'fi',
+                'type': 'if_close',
+                'if_level': 2,
+                'for_level': 0,
+            }, {
+                'value': 'fi',
+                'type': 'if_close',
+                'if_level': 0,
+                'for_level': 0,
+            }, {
+                'value': '\n終わったあと\n',
+                'type': 'text',
+                'if_level': 0,
+                'for_level': 0,
+            }
+        ]
+        expected = 'ふふふふ\n    ほんわか\n    出るはず\n終わったあと\n'
+        self.assertEqual(expected, p.parse_syntax())
+
     def test_parse_rif(self):
         p = nksm_parser.Parser()
         p.variables = {
@@ -121,6 +177,7 @@ class ParserTest(unittest.TestCase):
             }, {
                 'value': 'rif test',
                 'type': 'if_condition',
+                'indent': '',
                 'if_level': 1,
                 'for_level': 0,
             }, {
@@ -129,8 +186,9 @@ class ParserTest(unittest.TestCase):
                 'if_level': 1,
                 'for_level': 0,
             }, {
-                'value': 'if test2',
+                'value': 'rif test2',
                 'type': 'if_condition',
+                'indent': '    ',
                 'if_level': 2,
                 'for_level': 0,
             }, {
@@ -161,7 +219,6 @@ class ParserTest(unittest.TestCase):
 終わったあと
 '''
         self.assertEqual(expected, p.parse_syntax())
-
 
     def test_if_error(self):
         p = nksm_parser.Parser()
@@ -208,6 +265,7 @@ class ParserTest(unittest.TestCase):
                 {
                     'value': 'if hoge',
                     'type': 'if_condition',
+                    'indent': '',
                     'if_level': 1,
                     'for_level': 0 },
                 {
@@ -228,6 +286,7 @@ class ParserTest(unittest.TestCase):
                 {
                     'value': 'rif hoge2',
                     'type': 'if_condition',
+                    'indent': '    ',
                     'if_level': 2,
                     'for_level': 0 },
                 {
@@ -264,6 +323,8 @@ class ParserTest(unittest.TestCase):
         for i in range(len(expected)):
             self.assertEqual(expected[i]['value'], p.tokens[i]['value'])
             self.assertEqual(expected[i]['type'], p.tokens[i]['type'])
+            if 'indent' in expected[i]:
+                self.assertEqual(expected[i]['indent'], p.tokens[i]['indent'])
             self.assertEqual(expected[i]['if_level'], p.tokens[i]['if_level'])
             self.assertEqual(expected[i]['for_level'], p.tokens[i]['for_level'])
 
