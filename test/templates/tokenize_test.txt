@@ -1,4 +1,7 @@
 this is {{test}}
 {{if hoge}}
     {{fuga}}
+    {{rif hoge2}}
+        {{piyo}}
+    {{fi}}
 {{fi}}

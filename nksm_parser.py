@@ -7,20 +7,20 @@ import json
 class Parser:
     """The template parser."""
 
+    # Original template.
     template = ''
-    """This keeps original template."""
 
+    # Text that has been replaced with variables.
     text = ''
-    """Text than has been replaced variables."""
 
+    # Variables for template.
     variables = {}
-    """Variables for template."""
 
+    # Template splitted by token.
     tokens = []
-    """Template splitted by token."""
 
+    # Tokens replaced by tempalte syntax.
     replaced = []
-    """Tokens replaced by tempalte syntax."""
 
     def read_template(self, path):
         data = ''
@@ -38,6 +38,7 @@ class Parser:
     def parse_if(self, tokens):
         out = ''
         ignore_level = -1
+        raw_flag = False
         for t in tokens:
             if t['if_level'] < ignore_level:
                 ignore_level = -1
@@ -45,16 +46,23 @@ class Parser:
                 # if条件がFalseの範囲は出力しない
                 continue
             if t['type'] == 'text':
-                m = re.match('\n?\s*(.*)', t['value'], re.M|re.S)
-                out += m.group(1)
+                m = re.match('\n?(\s*(.*))', t['value'], re.M|re.S)
+                if raw_flag:
+                    out += m.group(1)
+                else:
+                    out += m.group(2)
             elif t['type'] == 'if_condition':
-                m = re.match('\s*if\s*(\w+)\s*', t['value'])
+                m = re.match('\s*(r?if)(\s*)(\w+)\s*', t['value'])
                 if m == None:
                     raise IfClauseError()
-                if not self.variables[m.group(1)]:
+                if m.group(1) == 'rif':
+                    raw_flag = True
+                if not self.variables[m.group(3)]:
                     ignore_level = t['if_level']
             elif t['type'] == 'if_close':
                 ignore_level = -1
+                saved_indent = ''
+                raw_flag = False
         return out
 
     def parse_variable(self, token):
@@ -63,7 +71,7 @@ class Parser:
     def tokenize(self):
         reg = re.compile('{{(.+)}}')
         v_reg = re.compile('^\s*\w+\s*$')
-        if_reg = re.compile('^\s*if\s+(.+)\s*$')
+        if_reg = re.compile('^\s*(r?if)\s+(.+)\s*$')
         fi_reg = re.compile('^\s*fi\s*$')
         if_level = 0
         for_level = 0
@@ -82,7 +90,8 @@ class Parser:
 
             t_value = r.group(1)
             t_type = ''
-            if if_reg.match(t_value) != None:
+            if_m = if_reg.match(t_value)
+            if if_m != None:
                 t_type = 'if_condition'
                 if_level += 1
             elif fi_reg.match(t_value) != None:
