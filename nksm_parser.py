@@ -51,6 +51,7 @@ class Parser:
         ignore_level = -1
         raw_flag = False
         indent = ['']
+        post_if_for = False
         for t in self.tokens:
             if t['if_level'] < ignore_level:
                 ignore_level = -1
@@ -61,14 +62,18 @@ class Parser:
                 if len(t['value']) > 2:
                     m = re.match('\n?(\s*(.*))', t['value'], re.M|re.S)
                     if raw_flag:
-                        out += m.group(1)
+                        out += m[1]
+                    elif post_if_for:
+                        out += indent[-1] + m[2]
+                        post_if_for = False
                     else:
-                        out += indent[-1] + m.group(2)
+                        out += indent[-1] + m[0]
                 else:
                     out += indent[-1] + t['value']
             elif t['type'] == 'variable':
                 out += self.get_value(t['value'])
             elif t['type'] == 'if_condition':
+                post_if_for = True
                 m = re.match('\s*(r?if)(\s*)(\w+)\s*', t['value'])
                 if m == None:
                     raise IfClauseError()
@@ -82,6 +87,7 @@ class Parser:
                 if not self.variables[m.group(3)]:
                     ignore_level = t['if_level']
             elif t['type'] == 'if_close':
+                post_if_for = True
                 ignore_level = -1
                 saved_indent = ''
                 raw_flag = False
@@ -94,7 +100,7 @@ class Parser:
         return self.variables[token.strip()]
 
     def tokenize(self):
-        reg = re.compile('{{(.+)}}')
+        reg = re.compile('{{(.+?)}}')
         ind_reg = re.compile('^\n*([ \t]*)')
         v_reg = re.compile('^\s*\w+\s*$')
         if_reg = re.compile('^\s*(r?if)\s+(.+)\s*$')
