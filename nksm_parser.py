@@ -32,11 +32,26 @@ class Parser:
         with open(path, 'r') as f:
             self.variables = json.load(f)
 
+    def get_value(self, query):
+        """
+        Get value for the query.
+        """
+        m = re.match('\s*([^\[\]]*?)(\[.*\])', query)
+        if m != None:
+            return eval('self.variables[m[1]]' + m[2])
+        else:
+            return self.variables[query.strip()]
+
     def parse_syntax(self):
+        """
+        Parse nksmtemplate's syntax.
+        'if' and variables.
+        """
         out = ''
         ignore_level = -1
         raw_flag = False
         indent = ['']
+        post_if_for = False
         for t in self.tokens:
             if t['if_level'] < ignore_level:
                 ignore_level = -1
@@ -44,27 +59,35 @@ class Parser:
                 # if条件がFalseの範囲は出力しない
                 continue
             if t['type'] == 'text':
-                m = re.match('\n?(\s*(.*))', t['value'], re.M|re.S)
-                if raw_flag:
-                    out += m.group(1)
+                if len(t['value']) > 2:
+                    m = re.match('\n?(\s*(.*))', t['value'], re.M|re.S)
+                    if raw_flag:
+                        out += m[1]
+                    elif post_if_for:
+                        out += indent[-1] + m[2]
+                        post_if_for = False
+                    else:
+                        out += indent[-1] + m[0]
                 else:
-                    out += indent[-1] + m.group(2)
+                    out += indent[-1] + t['value']
             elif t['type'] == 'variable':
-                out += self.variables[t['value'].strip()]
+                out += self.get_value(t['value'])
             elif t['type'] == 'if_condition':
+                post_if_for = True
                 m = re.match('\s*(r?if)(\s*)(\w+)\s*', t['value'])
                 if m == None:
                     raise IfClauseError()
                 raw_flag = m.group(1) == 'rif'
                 indent.append(t['indent'])
                 if (
-                        self.variables[m.group(3)] != True and
-                        self.variables[m.group(3)] != False
+                        self.get_value(m.group(3)) != True and
+                        self.get_value(m.group(3)) != False
                     ):
                     raise NotBooleanError()
                 if not self.variables[m.group(3)]:
                     ignore_level = t['if_level']
             elif t['type'] == 'if_close':
+                post_if_for = True
                 ignore_level = -1
                 saved_indent = ''
                 raw_flag = False
@@ -77,7 +100,7 @@ class Parser:
         return self.variables[token.strip()]
 
     def tokenize(self):
-        reg = re.compile('{{(.+)}}')
+        reg = re.compile('{{(.+?)}}')
         ind_reg = re.compile('^\n*([ \t]*)')
         v_reg = re.compile('^\s*\w+\s*$')
         if_reg = re.compile('^\s*(r?if)\s+(.+)\s*$')

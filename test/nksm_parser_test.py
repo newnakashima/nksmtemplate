@@ -11,11 +11,13 @@ from nksm_errors import IfClauseError, NotBooleanError
 class ParserTest(unittest.TestCase):
 
     def test_read_template(self):
+        """Test of read_template()"""
         p = nksm_parser.Parser()
         p.read_template('./test/templates/test.txt')
         self.assertEqual('this is test\n', p.template)
 
     def test_read_json(self):
+        """Test of read_json()"""
         p = nksm_parser.Parser()
         p.read_json('./test/json/var_test.json')
         expected = {
@@ -24,20 +26,41 @@ class ParserTest(unittest.TestCase):
                 }
         self.assertEqual(expected, p.variables)
 
-    def test_parse_variable(self):
+    def test_get_value(self):
+        """Tests get_value()"""
         p = nksm_parser.Parser()
-        p.read_template('./test/templates/test2.txt')
+        p.variables = {
+            'key1': 'orange',
+            'key2': {
+                'apple': 'pen',
+            }
+        }
+        expected = 'pen'
+        actual = p.get_value('key2[\'apple\']')
+        self.assertEqual(expected, actual)
+
+    def test_parse_variable(self):
+        """
+        Test of parse_syntax. This method tests feature of
+        printing variables.
+        """
+        p = nksm_parser.Parser()
+        p.read_template('./test/templates/test_variable.txt')
         p.tokenize()
         p.variables = {
             'hoge': 'unko',
+            'dic': {
+                'one': 'value1',
+            }
         }
-        expected = textwrap.dedent('''
-        this is test2.
-        unko
-        ''').strip()
+        expected = '''this is test2.
+unko
+value1
+'''
         self.assertEqual(expected, p.parse_syntax())
 
     def test_render(self):
+        """Test of render()"""
         self.maxDiff = 2000
         tmp_buffer = StringIO()
         sys.stdout = tmp_buffer
@@ -49,12 +72,17 @@ class ParserTest(unittest.TestCase):
         p.read_template('./test/templates/test2.txt')
         expected = '''this is test2.
 {hoge}
+
 '''.format(hoge=hoge['hoge'])
         p.render()
         sys.stdout = sys.__stdout__
         self.assertEqual(expected, tmp_buffer.getvalue())
 
     def test_parse_if(self):
+        """
+        Test of parse_syntax.
+        This method tests the feature of 'if' keyword.
+        """
         p = nksm_parser.Parser()
         p.variables = {
             'test': True,
@@ -109,6 +137,9 @@ class ParserTest(unittest.TestCase):
         self.assertEqual(expected, p.parse_syntax())
 
     def test_parse_if_indent(self):
+        """
+        Tests indent of 'if'.
+        """
         p = nksm_parser.Parser()
         p.variables = {
             'test': True,
@@ -163,6 +194,9 @@ class ParserTest(unittest.TestCase):
         self.assertEqual(expected, p.parse_syntax())
 
     def test_parse_rif(self):
+        """
+        Tests 'rif' keywords.
+        """
         p = nksm_parser.Parser()
         p.variables = {
             'test': True,
@@ -221,6 +255,9 @@ class ParserTest(unittest.TestCase):
         self.assertEqual(expected, p.parse_syntax())
 
     def test_if_error(self):
+        """
+        Tests invalid 'if' use case.
+        """
         p = nksm_parser.Parser()
         p.read_template('./test/templates/if_error.txt')
         p.tokenize()
@@ -232,6 +269,9 @@ class ParserTest(unittest.TestCase):
             p.parse_syntax()
 
     def test_if_not_boolean(self):
+        """
+        Tests invalid 'if' use case.
+        """
         p = nksm_parser.Parser()
         p.read_template('./test/templates/if_error.txt')
         p.tokenize()
@@ -243,6 +283,9 @@ class ParserTest(unittest.TestCase):
             p.parse_syntax()
 
     def test_tokenize(self):
+        """
+        Tests tokenize().
+        """
         p = nksm_parser.Parser()
         p.read_template('./test/templates/tokenize_test.txt')
         p.tokenize()
