@@ -1,7 +1,9 @@
-hello, {{ hoge }} {{hoge}}
+hello, \hoge\hoge
 
-I'm greeting you. {{ hoge }}
+I'm greeting you. \hoge
 fuck you
-{{ arr[0] }}
-{{ arr[1] }}
-{{ arr[2] }}
+\arr[0]
+\arr[1]
+\arr[2]
+
+this is \(hoge).

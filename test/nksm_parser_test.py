@@ -55,8 +55,7 @@ class ParserTest(unittest.TestCase):
         }
         expected = '''this is test2.
 unko
-value1
-'''
+value1'''
         self.assertEqual(expected, p.parse_syntax())
 
     def test_render(self):
@@ -72,7 +71,6 @@ value1
         p.read_template('./test/templates/test2.txt')
         expected = '''this is test2.
 {hoge}
-
 '''.format(hoge=hoge['hoge'])
         p.render()
         sys.stdout = sys.__stdout__
@@ -95,36 +93,26 @@ value1
                 'if_level': 0,
                 'for_level': 0,
             }, {
-                'value': 'if test',
+                'value': 'if test:',
                 'type': 'if_condition',
                 'indent': '',
                 'if_level': 1,
                 'for_level': 0,
             }, {
-                'value': '\n    ほんわか\n',
+                'value': '\nほんわか\n',
                 'type': 'text',
                 'if_level': 1,
                 'for_level': 0,
             }, {
-                'value': 'if test2',
+                'value': 'if test2:',
                 'type': 'if_condition',
-                'indent': '    ',
+                'indent': '',
                 'if_level': 2,
                 'for_level': 0,
             }, {
                 'value': '\n        出ないはず\n',
                 'type': 'text',
                 'if_level': 2,
-                'for_level': 0,
-            }, {
-                'value': 'fi',
-                'type': 'if_close',
-                'if_level': 2,
-                'for_level': 0,
-            }, {
-                'value': 'fi',
-                'type': 'if_close',
-                'if_level': 0,
                 'for_level': 0,
             }, {
                 'value': '\n終わったあと\n',
@@ -135,152 +123,6 @@ value1
         ]
         expected = 'ふふふふ\nほんわか\n終わったあと\n'
         self.assertEqual(expected, p.parse_syntax())
-
-    def test_parse_if_indent(self):
-        """
-        Tests indent of 'if'.
-        """
-        p = nksm_parser.Parser()
-        p.variables = {
-            'test': True,
-            'test2': True,
-        }
-        p.tokens = [
-            {
-                'value': 'ふふふふ\n',
-                'type': 'text',
-                'if_level': 0,
-                'for_level': 0,
-            }, {
-                'value': 'rif test',
-                'type': 'if_condition',
-                'indent': '',
-                'if_level': 1,
-                'for_level': 0,
-            }, {
-                'value': '\n    ほんわか\n',
-                'type': 'text',
-                'if_level': 1,
-                'for_level': 0,
-            }, {
-                'value': 'if test2',
-                'type': 'if_condition',
-                'indent': '    ',
-                'if_level': 2,
-                'for_level': 0,
-            }, {
-                'value': '\n        出るはず\n',
-                'type': 'text',
-                'if_level': 2,
-                'for_level': 0,
-            }, {
-                'value': 'fi',
-                'type': 'if_close',
-                'if_level': 2,
-                'for_level': 0,
-            }, {
-                'value': 'fi',
-                'type': 'if_close',
-                'if_level': 0,
-                'for_level': 0,
-            }, {
-                'value': '\n終わったあと\n',
-                'type': 'text',
-                'if_level': 0,
-                'for_level': 0,
-            }
-        ]
-        expected = 'ふふふふ\n    ほんわか\n    出るはず\n終わったあと\n'
-        self.assertEqual(expected, p.parse_syntax())
-
-    def test_parse_rif(self):
-        """
-        Tests 'rif' keywords.
-        """
-        p = nksm_parser.Parser()
-        p.variables = {
-            'test': True,
-            'test2': True,
-        }
-        p.tokens = [
-            {
-                'value': 'ふふふふ\n',
-                'type': 'text',
-                'if_level': 0,
-                'for_level': 0,
-            }, {
-                'value': 'rif test',
-                'type': 'if_condition',
-                'indent': '',
-                'if_level': 1,
-                'for_level': 0,
-            }, {
-                'value': '\n    ほんわか\n',
-                'type': 'text',
-                'if_level': 1,
-                'for_level': 0,
-            }, {
-                'value': 'rif test2',
-                'type': 'if_condition',
-                'indent': '    ',
-                'if_level': 2,
-                'for_level': 0,
-            }, {
-                'value': '\n        出るはず\n',
-                'type': 'text',
-                'if_level': 2,
-                'for_level': 0,
-            }, {
-                'value': 'fi',
-                'type': 'if_close',
-                'if_level': 2,
-                'for_level': 0,
-            }, {
-                'value': 'fi',
-                'type': 'if_close',
-                'if_level': 0,
-                'for_level': 0,
-            }, {
-                'value': '\n終わったあと\n',
-                'type': 'text',
-                'if_level': 0,
-                'for_level': 0,
-            }
-        ]
-        expected = '''ふふふふ
-    ほんわか
-        出るはず
-終わったあと
-'''
-        self.assertEqual(expected, p.parse_syntax())
-
-    def test_if_error(self):
-        """
-        Tests invalid 'if' use case.
-        """
-        p = nksm_parser.Parser()
-        p.read_template('./test/templates/if_error.txt')
-        p.tokenize()
-        p.variables = {
-                'cond1': True,
-                'cond2': True,
-                }
-        with self.assertRaises(IfClauseError):
-            p.parse_syntax()
-
-    def test_if_not_boolean(self):
-        """
-        Tests invalid 'if' use case.
-        """
-        p = nksm_parser.Parser()
-        p.read_template('./test/templates/if_error.txt')
-        p.tokenize()
-        p.variables = {
-                'cond1': True,
-                'cond2': 'fuckyou'
-                }
-        with self.assertRaises(NotBooleanError):
-            p.parse_syntax()
 
     def test_tokenize(self):
         """
@@ -296,7 +138,7 @@ value1
                     'if_level': 0,
                     'for_level': 0 },
                 {
-                    'value': 'test',
+                    'value': r'\test',
                     'type': 'variable',
                     'if_level': 0,
                     'for_level': 0 },
@@ -306,7 +148,7 @@ value1
                     'if_level': 0,
                     'for_level': 0 },
                 {
-                    'value': 'if hoge',
+                    'value': 'if hoge:',
                     'type': 'if_condition',
                     'indent': '',
                     'if_level': 1,
@@ -317,7 +159,7 @@ value1
                     'if_level': 1,
                     'for_level': 0 },
                 {
-                    'value': 'fuga',
+                    'value': r'\fuga',
                     'type': 'variable',
                     'if_level': 1,
                     'for_level': 0 },
@@ -327,9 +169,9 @@ value1
                     'if_level': 1,
                     'for_level': 0 },
                 {
-                    'value': 'rif hoge2',
+                    'value': 'if hoge2:',
                     'type': 'if_condition',
-                    'indent': '    ',
+                    'indent': '',
                     'if_level': 2,
                     'for_level': 0 },
                 {
@@ -338,29 +180,9 @@ value1
                     'if_level': 2,
                     'for_level': 0 },
                 {
-                    'value': 'piyo',
+                    'value': r'\piyo',
                     'type': 'variable',
                     'if_level': 2,
-                    'for_level': 0 },
-                {
-                    'value': '\n    ',
-                    'type': 'text',
-                    'if_level': 2,
-                    'for_level': 0 },
-                {
-                    'value': 'fi',
-                    'type': 'if_close',
-                    'if_level': 2,
-                    'for_level': 0, },
-                {
-                    'value': '\n',
-                    'type':  'text',
-                    'if_level': 1,
-                    'for_level': 0 },
-                {
-                    'value': 'fi',
-                    'type': 'if_close',
-                    'if_level': 1,
                     'for_level': 0 },
                 ]
         for i in range(len(expected)):
