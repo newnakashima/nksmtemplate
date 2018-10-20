@@ -360,3 +360,4 @@ if __name__ == '__main__':
     # unittest.main()
     t = ParserTest()
     t.test_tokenize()
+    t.test_parse_variable()

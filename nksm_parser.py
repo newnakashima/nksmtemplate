@@ -26,6 +26,7 @@ class Parser:
     # Tokens replaced by tempalte syntax.
     replaced = []
 
+    # Parameters for create tokens.
     if_level = 0
     for_level = 0
     block_stack = [BLOCK_TOP]
@@ -44,7 +45,8 @@ class Parser:
         """
         Get value for the query.
         """
-        m = re.match('\s*([^\[\]]*?)(\[.*\])', query)
+        query = re.sub(r'\\', '', query)
+        m = re.match('([^\[\]]*?)(\[.*\])', query)
         if m != None:
             return eval('self.variables[m[1]]' + m[2])
         else:
@@ -108,8 +110,7 @@ class Parser:
         return self.variables[token.strip()]
 
     def tokenize(self):
-        reg = re.compile(r'(?<!\\)\\\w+|if\s+.+:')
-        v_reg = re.compile(r'^\\\w+$')
+        reg = re.compile(r'(?<!\\)\\\S+|if\s+.+:')
         if_reg = re.compile('^if\s+(.+):$')
         fi_reg = re.compile('^\s*fi\s*$')
         prev = 0
