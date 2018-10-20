@@ -5,3 +5,4 @@ class IfClauseError(Exception):
 class NotBooleanError(Exception):
     """Raised when if-condition is not Boolean"""
     pass
+

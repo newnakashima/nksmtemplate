@@ -296,7 +296,7 @@ value1
                     'if_level': 0,
                     'for_level': 0 },
                 {
-                    'value': 'test',
+                    'value': r'\test',
                     'type': 'variable',
                     'if_level': 0,
                     'for_level': 0 },
@@ -306,7 +306,7 @@ value1
                     'if_level': 0,
                     'for_level': 0 },
                 {
-                    'value': 'if hoge',
+                    'value': 'if hoge:',
                     'type': 'if_condition',
                     'indent': '',
                     'if_level': 1,
@@ -317,7 +317,7 @@ value1
                     'if_level': 1,
                     'for_level': 0 },
                 {
-                    'value': 'fuga',
+                    'value': r'\fuga',
                     'type': 'variable',
                     'if_level': 1,
                     'for_level': 0 },
@@ -327,7 +327,7 @@ value1
                     'if_level': 1,
                     'for_level': 0 },
                 {
-                    'value': 'rif hoge2',
+                    'value': 'if hoge2:',
                     'type': 'if_condition',
                     'indent': '    ',
                     'if_level': 2,
@@ -338,29 +338,14 @@ value1
                     'if_level': 2,
                     'for_level': 0 },
                 {
-                    'value': 'piyo',
+                    'value': r'\piyo',
                     'type': 'variable',
                     'if_level': 2,
                     'for_level': 0 },
                 {
-                    'value': '\n    ',
-                    'type': 'text',
-                    'if_level': 2,
-                    'for_level': 0 },
-                {
-                    'value': 'fi',
-                    'type': 'if_close',
-                    'if_level': 2,
-                    'for_level': 0, },
-                {
                     'value': '\n',
-                    'type':  'text',
-                    'if_level': 1,
-                    'for_level': 0 },
-                {
-                    'value': 'fi',
-                    'type': 'if_close',
-                    'if_level': 1,
+                    'type': 'text',
+                    'if_level': 0,
                     'for_level': 0 },
                 ]
         for i in range(len(expected)):
@@ -372,4 +357,6 @@ value1
             self.assertEqual(expected[i]['for_level'], p.tokens[i]['for_level'])
 
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main()
+    t = ParserTest()
+    t.test_tokenize()
