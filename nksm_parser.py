@@ -45,7 +45,7 @@ class Parser:
         """
         Get value for the query.
         """
-        query = re.sub(r'\\', '', query)
+        query = re.sub(r'\\|\(|\)', '', query)
         m = re.match('([^\[\]]*?)(\[.*\])', query)
         if m != None:
             return eval('self.variables[m[1]]' + m[2])
@@ -105,7 +105,7 @@ class Parser:
         return self.variables[token.strip()]
 
     def tokenize(self):
-        reg = re.compile(r'(?<!\\)\\[^\s\\]+|if\s+.+:')
+        reg = re.compile(r'(?<!\\)\\\(([^\s\\])+\)|(?<!\\)\\([^\s\\])+|if\s+.+:')
         if_reg = re.compile('^if\s+(.+):$')
         fi_reg = re.compile('^\s*fi\s*$')
         prev = 0

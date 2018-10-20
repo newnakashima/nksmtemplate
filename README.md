@@ -12,7 +12,8 @@ python3.6.5で作成。
 
 例 template.txt
 ```
-this is \hoge.
+this is \(hoge).
+\name is my name.
 ```
 
 ### 変数のキーと値を書いたJSONファイルを作成。
@@ -20,7 +21,8 @@ this is \hoge.
 例 variables.json
 ```json
 {
-    "hoge": "テストです"
+    "hoge": "テストです",
+    "name": "nakashima"
 }
 ```
 
@@ -33,6 +35,7 @@ $ python nksm_parser.py template.txt variables.json
 結果
 ```
 this is テストです.
+nakashima is my name.
 ```
 
 ### if文
@@ -102,3 +105,4 @@ line 4.
 ### ifブロックの中でもインデントをそのまま出力したい場合
 
 未実装です。
+実装する予定です。
