@@ -131,9 +131,10 @@ class Parser:
             token['for_level'] = self.for_level
             self.tokens.append(token)
             prev = r.end()
-        if self.template[prev:] != '':
+        last_text = re.sub(r'\n$', '', self.template[prev:])
+        if last_text != '':
             # 最後に追加すべき文字列があれば追加
-            indent = self.__append_text(self.template[prev:], indent)
+            self.__append_text(last_text, indent)
         # 後始末
         self.if_level = 0
         self.for_level = 0
@@ -168,7 +169,6 @@ class Parser:
             'if_level':  self.if_level,
             'for_level': self.for_level
         })
-
         return indent
 
     def render(self):

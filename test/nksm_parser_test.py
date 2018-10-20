@@ -55,8 +55,7 @@ class ParserTest(unittest.TestCase):
         }
         expected = '''this is test2.
 unko
-value1
-'''
+value1'''
         self.assertEqual(expected, p.parse_syntax())
 
     def test_render(self):
@@ -72,7 +71,6 @@ value1
         p.read_template('./test/templates/test2.txt')
         expected = '''this is test2.
 {hoge}
-
 '''.format(hoge=hoge['hoge'])
         p.render()
         sys.stdout = sys.__stdout__
@@ -185,11 +183,6 @@ value1
                     'value': r'\piyo',
                     'type': 'variable',
                     'if_level': 2,
-                    'for_level': 0 },
-                {
-                    'value': '\n',
-                    'type': 'text',
-                    'if_level': 0,
                     'for_level': 0 },
                 ]
         for i in range(len(expected)):
