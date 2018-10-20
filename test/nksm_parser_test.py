@@ -95,36 +95,26 @@ value1
                 'if_level': 0,
                 'for_level': 0,
             }, {
-                'value': 'if test',
+                'value': 'if test:',
                 'type': 'if_condition',
                 'indent': '',
                 'if_level': 1,
                 'for_level': 0,
             }, {
-                'value': '\n    ほんわか\n',
+                'value': '\nほんわか\n',
                 'type': 'text',
                 'if_level': 1,
                 'for_level': 0,
             }, {
-                'value': 'if test2',
+                'value': 'if test2:',
                 'type': 'if_condition',
-                'indent': '    ',
+                'indent': '',
                 'if_level': 2,
                 'for_level': 0,
             }, {
                 'value': '\n        出ないはず\n',
                 'type': 'text',
                 'if_level': 2,
-                'for_level': 0,
-            }, {
-                'value': 'fi',
-                'type': 'if_close',
-                'if_level': 2,
-                'for_level': 0,
-            }, {
-                'value': 'fi',
-                'type': 'if_close',
-                'if_level': 0,
                 'for_level': 0,
             }, {
                 'value': '\n終わったあと\n',
@@ -329,7 +319,7 @@ value1
                 {
                     'value': 'if hoge2:',
                     'type': 'if_condition',
-                    'indent': '    ',
+                    'indent': '',
                     'if_level': 2,
                     'for_level': 0 },
                 {
@@ -361,3 +351,4 @@ if __name__ == '__main__':
     t = ParserTest()
     t.test_tokenize()
     t.test_parse_variable()
+    t.test_parse_if()

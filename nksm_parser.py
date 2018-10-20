@@ -126,8 +126,8 @@ class Parser:
             if_m = if_reg.match(token['value'])
             if if_m != None:
                 token['type'] = 'if_condition'
-                token['indent'] = indent[-1]
                 self.if_level += 1
+                token['indent'] = indent[-(self.if_level)]
                 self.block_stack.append(self.BLOCK_IF)
             elif fi_reg.match(token['value']) != None:
                 token['type'] = 'if_close'
