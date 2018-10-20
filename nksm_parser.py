@@ -66,7 +66,7 @@ class Parser:
             if t['if_level'] < ignore_level:
                 ignore_level = -1
             if ignore_level != -1 and t['if_level'] >= ignore_level:
-                # if条件がFalseの範囲は出力しない
+                # Not output if condition is false.
                 continue
             if t['type'] == 'text':
                 if len(t['value']) > 2:
@@ -87,7 +87,8 @@ class Parser:
                 m = re.match('\s*(r?if)(\s*)(\w+)\s*', t['value'])
                 if m == None:
                     raise IfClauseError()
-                raw_flag = m.group(1) == 'rif'
+                # TODO: on raw_flag here.
+                # raw_flag = m.group(1) == 'rif'
                 indent.append(t['indent'])
                 if (
                         self.get_value(m.group(3)) != True and
@@ -96,12 +97,6 @@ class Parser:
                     raise NotBooleanError()
                 if not self.variables[m.group(3)]:
                     ignore_level = t['if_level']
-            elif t['type'] == 'if_close':
-                post_if_for = True
-                ignore_level = -1
-                saved_indent = ''
-                raw_flag = False
-                indent.pop()
         if self.tokens[-1]['if_level'] != 0:
             raise IfClauseError()
         return out
@@ -110,7 +105,7 @@ class Parser:
         return self.variables[token.strip()]
 
     def tokenize(self):
-        reg = re.compile(r'(?<!\\)\\\S+|if\s+.+:')
+        reg = re.compile(r'(?<!\\)\\[^\s\\]+|if\s+.+:')
         if_reg = re.compile('^if\s+(.+):$')
         fi_reg = re.compile('^\s*fi\s*$')
         prev = 0
@@ -118,9 +113,8 @@ class Parser:
         indent = ['']
         for r in reg.finditer(self.template):
             pre_value = self.template[prev:r.start()]
-            if pre_value == '':
-                continue
-            indent = self.__append_text(pre_value, indent)
+            if pre_value != '':
+                indent = self.__append_text(pre_value, indent)
             token = {}
             token['value'] = r[0]
             if_m = if_reg.match(token['value'])
@@ -165,7 +159,7 @@ class Parser:
             for c in closed_blocks:
                 if c == self.BLOCK_IF:
                     self.if_level -= 1
-                elif c == self.BLOCK_FOR:
+                elif c == self.BLOCK_FOR_LOOP:
                     self.for_level -= 1
 
         self.tokens.append({
