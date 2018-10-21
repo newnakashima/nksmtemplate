@@ -32,7 +32,7 @@ this is \(hoge).
 ### プログラムを実行
 
 ```sh
-$ python nksm_parser.py template.txt variables.json
+$ python nksmtemplate.py template.txt variables.json
 ```
 
 結果

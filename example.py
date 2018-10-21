@@ -1,6 +1,6 @@
-import nksm_parser
+import nksmtemplate
 
-p = nksm_parser.Parser()
+p = nksmtemplate.Parser()
 v = {
         "hoge": "この世はもうおしまい",
         "arr": [
