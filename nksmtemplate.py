@@ -78,7 +78,7 @@ class Parser:
                         out += indent[-1] + m[2]
                         post_if_for = False
                     else:
-                        out += indent[-1] + m[2]
+                        out += indent[-1] + m[0]
                 else:
                     out += indent[-1] + t['value']
             elif t['type'] == 'variable':
