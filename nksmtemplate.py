@@ -78,7 +78,7 @@ class Parser:
                         out += indent[-1] + m[2]
                         post_if_for = False
                     else:
-                        out += indent[-1] + m[0]
+                        out += indent[-1] + m[2]
                 else:
                     out += indent[-1] + t['value']
             elif t['type'] == 'variable':
@@ -98,8 +98,6 @@ class Parser:
                     raise NotBooleanError()
                 if not self.variables[m.group(3)]:
                     ignore_level = t['if_level']
-        if self.tokens[-1]['if_level'] != 0:
-            raise IfClauseError()
         return out
 
     def parse_variable(self, token):

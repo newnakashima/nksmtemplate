@@ -4,3 +4,5 @@ templates
 !test/templates
 variables
 !variables/variable.json
+test.txt
+test.json
