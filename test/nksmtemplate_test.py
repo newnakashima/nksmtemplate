@@ -3,7 +3,7 @@ import unittest
 import sys
 import os
 sys.path.append(os.getcwd())
-import nksm_parser
+import nksmtemplate
 from io import StringIO
 import textwrap
 from nksm_errors import IfClauseError, NotBooleanError
@@ -12,13 +12,13 @@ class ParserTest(unittest.TestCase):
 
     def test_read_template(self):
         """Test of read_template()"""
-        p = nksm_parser.Parser()
+        p = nksmtemplate.Parser()
         p.read_template('./test/templates/test.txt')
         self.assertEqual('this is test\n', p.template)
 
     def test_read_json(self):
         """Test of read_json()"""
-        p = nksm_parser.Parser()
+        p = nksmtemplate.Parser()
         p.read_json('./test/json/var_test.json')
         expected = {
                 'hoge': 'fuga',
@@ -28,7 +28,7 @@ class ParserTest(unittest.TestCase):
 
     def test_get_value(self):
         """Tests get_value()"""
-        p = nksm_parser.Parser()
+        p = nksmtemplate.Parser()
         p.variables = {
             'key1': 'orange',
             'key2': {
@@ -44,7 +44,7 @@ class ParserTest(unittest.TestCase):
         Test of parse_syntax. This method tests feature of
         printing variables.
         """
-        p = nksm_parser.Parser()
+        p = nksmtemplate.Parser()
         p.read_template('./test/templates/test_variable.txt')
         p.tokenize()
         p.variables = {
@@ -79,7 +79,7 @@ unkoclap
         self.maxDiff = 2000
         tmp_buffer = StringIO()
         sys.stdout = tmp_buffer
-        p = nksm_parser.Parser()
+        p = nksmtemplate.Parser()
         hoge = {
                 'hoge': 'これは非常に長い文字列を格納するための変数であり、非常に長い値を持つことにその特色があると言っても過言ではないというのが現時点における私の見解であるとともに、これを機会に周知しておかねばならぬと常日頃考えているところのものの懸案事項であることは間違いないのであるが、このことが世間一般にほとんど認知されておらず、問題とも認識されていないどころか、この問題の存在そのものが社会から抹殺され忘却されきってしまおうとしているのは本当に残念極まりないことであると世情を憂うことでしかわびしい余生を過ごすすべを知らぬつまらぬ男の嘆きを演じているのがこの私の現状なのである。悲しい。',
                 }
@@ -97,7 +97,7 @@ unkoclap
         Test of parse_syntax.
         This method tests the feature of 'if' keyword.
         """
-        p = nksm_parser.Parser()
+        p = nksmtemplate.Parser()
         p.variables = {
             'test': True,
             'test2': False,
@@ -144,7 +144,7 @@ unkoclap
         """
         Tests tokenize().
         """
-        p = nksm_parser.Parser()
+        p = nksmtemplate.Parser()
         p.read_template('./test/templates/tokenize_test.txt')
         p.tokenize()
         expected = [
