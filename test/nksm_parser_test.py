@@ -49,13 +49,29 @@ class ParserTest(unittest.TestCase):
         p.tokenize()
         p.variables = {
             'hoge': 'unko',
+            'fuga': 'clap',
+            'test': 'テスト',
             'dic': {
                 'one': 'value1',
-            }
+            },
+            'ary': [
+                '一個目',
+                '二個目',
+            ]
         }
         expected = '''this is test2.
 unko
-value1'''
+value1
+
+変数が２つ続いているときのテスト
+unkoclap
+
+文中に区切り無しで変数を使うときのテスト
+これはテストです。
+
+単なる配列のテスト
+一個目
+二個目'''
         self.assertEqual(expected, p.parse_syntax())
 
     def test_render(self):
