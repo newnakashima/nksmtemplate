@@ -2,7 +2,7 @@
 import re
 import sys
 import os
-sys.path.append(os.getcwd() + '/error')
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/error')
 from nksm_errors import IfClauseError, NotBooleanError
 import json
 class Parser:
