@@ -115,7 +115,7 @@ unkoclap
                 'if_level': 1,
                 'for_level': 0,
             }, {
-                'value': '\nほんわか\n',
+                'value': 'ほんわか\n',
                 'type': 'text',
                 'if_level': 1,
                 'for_level': 0,
@@ -131,7 +131,7 @@ unkoclap
                 'if_level': 2,
                 'for_level': 0,
             }, {
-                'value': '\n終わったあと\n',
+                'value': '終わったあと\n',
                 'type': 'text',
                 'if_level': 0,
                 'for_level': 0,
@@ -159,14 +159,8 @@ unkoclap
                     'if_level': 0,
                     'for_level': 0 },
                 {
-                    'value': '\n',
-                    'type': 'text',
-                    'if_level': 0,
-                    'for_level': 0 },
-                {
-                    'value': 'if hoge:',
+                    'value': '\nif hoge:',
                     'type': 'if_condition',
-                    'indent': '',
                     'if_level': 1,
                     'for_level': 0 },
                 {
@@ -180,12 +174,7 @@ unkoclap
                     'if_level': 1,
                     'for_level': 0 },
                 {
-                    'value': '\n    ',
-                    'type': 'text',
-                    'if_level': 1,
-                    'for_level': 0 },
-                {
-                    'value': 'if hoge2:',
+                    'value': '\n    if hoge2:',
                     'type': 'if_condition',
                     'indent': '',
                     'if_level': 2,

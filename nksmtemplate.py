@@ -75,10 +75,10 @@ class Parser:
                     if raw_flag:
                         out += m[1]
                     elif post_if_for:
-                        out += indent[-1] + m[2]
+                        out += m[0]
                         post_if_for = False
                     else:
-                        out += indent[-1] + m[0]
+                        out += m[0]
                 else:
                     out += indent[-1] + t['value']
             elif t['type'] == 'variable':
@@ -104,8 +104,8 @@ class Parser:
         return self.variables[token.strip()]
 
     def tokenize(self):
-        reg = re.compile(r'(?<!\\)\\\(([^\s\\])+\)|(?<!\\)\\([^\s\\])+|if\s+.+:')
-        if_reg = re.compile('^if\s+(.+):$')
+        reg = re.compile(r'(?<!\\)\\\(([^\s\\])+\)|(?<!\\)\\([^\s\\])+|\s*if\s+.+:')
+        if_reg = re.compile('^\s*if\s+(.+):$')
         fi_reg = re.compile('^\s*fi\s*$')
         prev = 0
         self.tokens = []
